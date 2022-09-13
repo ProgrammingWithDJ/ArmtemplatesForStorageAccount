@@ -5,8 +5,7 @@
 
     "storageName": {
       "type": "string",
-      "minLength": "3",
-      "defaultValue": "storagessszq"
+      "minLength": "3"
     },
     "storageSku": {
       "type": "string",
@@ -21,22 +20,30 @@
   },
   "functions": [],
   "variables": {
-    "storageName": "[concat(parameters('storageName') , 'stage'  )]"
+    "storageName": "[concat(parameters('storageName') , 'stage'  )]",
+    "blobcontainername": "[concat(parameters('storageName'),'/default/input')]"
   },
   "resources": [
     {
-      "name": "[variables('storageName')]",
       "type": "Microsoft.Storage/storageAccounts",
+      "name": "[parameters('storageName')]",
       "apiVersion": "2021-04-01",
-      "tags": {
-        "displayName": "storageaccount1"
-      },
       "location": "[parameters('location')]",
       "kind": "StorageV2",
       "sku": {
         "name": "[parameters('storageSku')]",
         "tier": "Standard"
       }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+      "apiVersion": "2022-05-01",
+      "name": "[concat(parameters('storageName'),'/default/input')]",
+    //  "name": "goodstorage12sfazvs/default/input",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts',parameters('storageName'))]"
+      ]
+
     }
   ],
   "outputs": {}
