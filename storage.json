@@ -14,6 +14,12 @@
     "location": {
       "type": "string",
       "defaultValue": "[resourceGroup().location]"
+    },    
+    "webAppName": {
+      "type": "string"
+    },
+    "planName": {
+      "type": "string"
     }
 
 
@@ -33,18 +39,52 @@
       "sku": {
         "name": "[parameters('storageSku')]",
         "tier": "Standard"
+      },
+      "resources": [
+        {
+          "type": "blobServices/containers",
+          "apiVersion": "2021-09-01",
+          "name": "/default/output",
+          //  "name": "goodstorage12sfazvs/default/input",
+          "dependsOn": [
+            "[parameters('storageName')]"
+          ]
+        }
+      ]
+
+    },
+    {
+      "type": "Microsoft.Web/serverfarms",
+      "apiversion": "2021-03-01",
+      "name": "[parameters('planName')]",
+      "location": "[resourceGroup().location]",
+      "sku": {
+        "name": "S1"
       }
     },
     {
-      "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
-      "apiVersion": "2022-05-01",
-      "name": "[concat(parameters('storageName'),'/default/input')]",
-    //  "name": "goodstorage12sfazvs/default/input",
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2021-03-01",
+      "name": "[parameters('webAppName')]",
+      "location": "[resourceGroup().location]",
       "dependsOn": [
-        "[resourceId('Microsoft.Storage/storageAccounts',parameters('storageName'))]"
-      ]
-
+        "[parameters('planName')]",
+        "[parameters('storageName')]"
+      ],
+      "properties": {
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms' , parameters('planName'))]",
+        "siteConfig": {
+          "appSettings": [
+            {
+                "name": "storageAccessKey",
+                "value":"[listKeys(parameters('storageName'), '2021-04-01').keys[0].value]"
+                
+            }
+          ]
+        }
+      }
     }
+
   ],
   "outputs": {}
 }
